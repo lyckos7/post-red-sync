@@ -1,0 +1,88 @@
+services:
+  redis:
+    # image: custom-redis
+    platform: linux/amd64
+    build:
+      context: ./redis
+      dockerfile: Dockerfile
+    container_name: redis
+    depends_on:
+      - postgres
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - container-network
+
+  postgres:
+    # image: custom-postgres
+    platform: linux/amd64
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    container_name: postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: toor
+      POSTGRES_DB: db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - container-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d db"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: app
+    ports:
+      - "8081:8080"
+    volumes:
+      - app-data:/var/lib/app/data
+    networks:
+      - container-network
+    env_file:
+      - app/.env
+  tests:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: tests
+    depends_on: 
+      - app
+    volumes:
+      - app-data:/var/lib/app/data
+    networks:
+      - container-network
+    env_file:
+      - app/.env
+    command: pytest test_app.py
+    # command: python test_app.py
+  trigger_listener:
+    build:
+      context: ./redis_invalidator
+      dockerfile: Dockerfile
+    container_name: trigger_listener
+    volumes:
+      - listener-data:/var/lib/app/data
+    networks:
+      - container-network
+    env_file:
+      - redis_invalidator/.env
+      
+volumes:
+  redis-data:
+  postgres-data:
+  app-data:
+  listener-data:
+
+networks:
+  container-network:
