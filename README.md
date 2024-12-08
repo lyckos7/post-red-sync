@@ -2,7 +2,7 @@
 A way to re sync data stored in redis when changes occur to postgresql db so that our cache serves always fresh data 
 
 ## BUILD
-Build the app by running the docker-compose.yml file.
+Build the app by running the run_app.sh file.
 
 ## SWAGGER
 To use the endpoints you can access swagger documentation at localhost:8081/docs
