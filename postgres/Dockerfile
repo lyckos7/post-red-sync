@@ -1,4 +1,4 @@
-FROM postgres:latest
+FROM postgres:18.1-trixie
 ENV POSTGRES_USER=root
 ENV POSTGRES_PASSWORD=toor
 ENV POSTGRES_DB=db
